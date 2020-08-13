@@ -1,7 +1,32 @@
+import { useEffect, useState } from 'react'
 import Head from 'next/head'
-//import styles from '../styles/Home.module.css'
+const client = require('contentful').createClient({
+  space: '6olhaad35rps',
+  accessToken: 'HctQlmR_-wh5jDeQgFVaOlxMpaEF-rBjHfAI5rK2aIA'
+})
+function Home() {
 
-export default function Home() {
+  async function fetchEntries() {
+    const entries = await client.getEntries();
+    //console.log("Entries: ",entries)
+    if (entries.items) 
+    return entries.items
+    
+  }
+
+  const [items, setItems] = useState(null)
+  useEffect(() => {
+    async function fetchEntry() {
+      const data = await fetchEntries()
+      if(data.length > 0){
+        setItems(items =>({ ...data[0] }))
+      }
+      
+      console.log("entru",data);
+    }
+    fetchEntry()
+  }, [])
+  console.log(items)
   return (
     <div>
     <div className="relative bg-white overflow-hidden">
@@ -27,12 +52,11 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <div className="hidden md:block md:ml-10 md:pr-4">
-              <a href="#" className="font-medium text-gray-500 hover:text-gray-900 transition duration-150 ease-in-out">Product</a>
-              <a href="#" className="ml-8 font-medium text-gray-500 hover:text-gray-900 transition duration-150 ease-in-out">Features</a>
-              <a href="#" className="ml-8 font-medium text-gray-500 hover:text-gray-900 transition duration-150 ease-in-out">Marketplace</a>
-              <a href="#" className="ml-8 font-medium text-gray-500 hover:text-gray-900 transition duration-150 ease-in-out">Company</a>
-              <a href="#" className="ml-8 font-medium text-indigo-600 hover:text-indigo-900 transition duration-150 ease-in-out">Log in</a>
+            <div className="hidden md:block md:ml-10 md:pr-4"> 
+              {items?.fields.headers.map((header,index)=>(
+              <a href={'#'+`${index+1}`} className="ml-8 font-medium text-gray-500 hover:text-gray-900 transition duration-150 ease-in-out">{header}</a>  
+              ))}
+              
             </div>
           </nav>
         </div>
@@ -212,3 +236,4 @@ export default function Home() {
 
   )
 }
+export default Home

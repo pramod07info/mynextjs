@@ -2,31 +2,70 @@ import { useEffect, useState } from 'react'
 import Head from 'next/head'
 const client = require('contentful').createClient({
   space: '6olhaad35rps',
-  accessToken: 'HctQlmR_-wh5jDeQgFVaOlxMpaEF-rBjHfAI5rK2aIA'
+  accessToken: 'HctQlmR_-wh5jDeQgFVaOlxMpaEF-rBjHfAI5rK2aIA',
+  environment: 'master'
 })
-function Home() {
 
+function Home() {
+  const [locales,setLocales] = useState([]); 
+  const [selectedLocale,setSelectedLocale] = useState('en-US')
+
+  function getAllLocale(){
+    client.getLocales()
+  .then((response) => {
+    if(response.items.length > 0){
+      setLocales([...response.items])
+      //setSelectedLocale(response.items[0].code)
+    }
+  })
+  .catch(console.error)
+  }
+function updateUI(locale){
+ client.getEntries({
+  'sys.id':'794RnsLhyAzI2o9KL39Qpt',
+  locale: locale
+ }).then(response => {
+   const entry = response.items[0];
+   console.log("entry message: ",entry);
+ })
+}
   async function fetchEntries() {
-    const entries = await client.getEntries();
+    const entries = await client.getEntries({
+      locale: selectedLocale
+    });
     //console.log("Entries: ",entries)
     if (entries.items) 
     return entries.items
     
   }
 
+  const translateLang = (e) => {
+    console.log('event: ', e.target.value)
+    setSelectedLocale(...e.target.value)
+    //updateUI(e.target.value);
+    console.log('selected locale:', selectedLocale)
+  }
+
+  function translate(){
+    console.log('selected locale:', selectedLocale)
+  }
+
   const [items, setItems] = useState(null)
   useEffect(() => {
+    
+    getAllLocale();
     async function fetchEntry() {
       const data = await fetchEntries()
       if(data.length > 0){
         setItems(items =>({ ...data[0] }))
+        console.log("Print Data: ",data);
       }
       
       console.log("entru",data);
     }
     fetchEntry()
   }, [])
-  console.log(items)
+  console.log("Get Locales:-  ",locales);
   return (
     <div>
     <div className="relative bg-white overflow-hidden">
@@ -56,7 +95,13 @@ function Home() {
               {items?.fields.headers.map((header,index)=>(
               <a href={'#'+`${index+1}`} className="ml-8 font-medium text-gray-500 hover:text-gray-900 transition duration-150 ease-in-out">{header}</a>  
               ))}
-              
+              <select onChange={ e => translateLang(e)}>
+                {
+                  locales?.map((locale,index)=>(
+                    <option value={locale.code}>{locale.name}</option>
+                  ))
+                }
+              </select>
             </div>
           </nav>
         </div>
